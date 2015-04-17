@@ -45,6 +45,15 @@ namespace BlockBurst
 		bool	m_loadingComplete;
 		float	m_degreesPerSecond;
 		bool	m_tracking;
+
+		// Vertices of this scene to be rendered.
+		std::vector<VertexPositionColor> vertices;
+
+		// Triangle list of vertices of this scene to be rendered.
+		std::vector<unsigned short> indices;
+
+		// Creates a new block and adds it to the scene to be rendered.
+		void CreateBlock();
 	};
 }
 
