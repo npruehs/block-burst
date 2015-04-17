@@ -52,8 +52,8 @@ namespace BlockBurst
 		// Triangle list of vertices of this scene to be rendered.
 		std::vector<unsigned short> indices;
 
-		// Creates a new block and adds it to the scene to be rendered.
-		void CreateBlock();
+		// Creates a new block at the specified position and adds it to the scene to be rendered.
+		void CreateBlock(float posX, float posY, float posZ);
 	};
 }
 

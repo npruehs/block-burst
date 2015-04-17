@@ -234,7 +234,8 @@ void Sample3DSceneRenderer::CreateDeviceDependentResources()
 
 	// Once both shaders are loaded, create the mesh.
 	auto createCubeTask = (createPSTask && createVSTask).then([this] () {
-		CreateBlock();
+		CreateBlock(-1.0f, 0.0f, 0.0f);
+		CreateBlock(1.0f, 0.0f, 0.0f);
 	});
 
 	// Once the cube is loaded, the object is ready to be rendered.
@@ -254,17 +255,20 @@ void Sample3DSceneRenderer::ReleaseDeviceDependentResources()
 	m_indexBuffer.Reset();
 }
 
-void Sample3DSceneRenderer::CreateBlock()
+void Sample3DSceneRenderer::CreateBlock(float posX, float posY, float posZ)
 {
+	// Get current vertex count to be able to get the correct triangle incides later.
+	auto oldVertexCount = this->vertices.size();
+
 	// Add block vertices to scene.
-	this->vertices.push_back(VertexPositionColor{ XMFLOAT3(-0.5f, -0.5f, -0.5f), XMFLOAT3(0.0f, 0.0f, 0.0f) });
-	this->vertices.push_back(VertexPositionColor{ XMFLOAT3(-0.5f, -0.5f,  0.5f), XMFLOAT3(0.0f, 0.0f, 1.0f) });
-	this->vertices.push_back(VertexPositionColor{ XMFLOAT3(-0.5f,  0.5f, -0.5f), XMFLOAT3(0.0f, 1.0f, 0.0f) });
-	this->vertices.push_back(VertexPositionColor{ XMFLOAT3(-0.5f,  0.5f,  0.5f), XMFLOAT3(0.0f, 1.0f, 1.0f) });
-	this->vertices.push_back(VertexPositionColor{ XMFLOAT3(0.5f, -0.5f, -0.5f), XMFLOAT3(1.0f, 0.0f, 0.0f) });
-	this->vertices.push_back(VertexPositionColor{ XMFLOAT3(0.5f, -0.5f,  0.5f), XMFLOAT3(1.0f, 0.0f, 1.0f) });
-	this->vertices.push_back(VertexPositionColor{ XMFLOAT3(0.5f,  0.5f, -0.5f), XMFLOAT3(1.0f, 1.0f, 0.0f) });
-	this->vertices.push_back(VertexPositionColor{ XMFLOAT3(0.5f,  0.5f,  0.5f), XMFLOAT3(1.0f, 1.0f, 1.0f) });
+	this->vertices.push_back(VertexPositionColor{ XMFLOAT3(posX - 0.5f, posY - 0.5f, posZ - 0.5f), XMFLOAT3(0.0f, 0.0f, 0.0f) });
+	this->vertices.push_back(VertexPositionColor{ XMFLOAT3(posX - 0.5f, posY - 0.5f, posZ + 0.5f), XMFLOAT3(0.0f, 0.0f, 1.0f) });
+	this->vertices.push_back(VertexPositionColor{ XMFLOAT3(posX - 0.5f, posY + 0.5f, posZ - 0.5f), XMFLOAT3(0.0f, 1.0f, 0.0f) });
+	this->vertices.push_back(VertexPositionColor{ XMFLOAT3(posX - 0.5f, posY + 0.5f, posZ + 0.5f), XMFLOAT3(0.0f, 1.0f, 1.0f) });
+	this->vertices.push_back(VertexPositionColor{ XMFLOAT3(posX + 0.5f, posY - 0.5f, posZ - 0.5f), XMFLOAT3(1.0f, 0.0f, 0.0f) });
+	this->vertices.push_back(VertexPositionColor{ XMFLOAT3(posX + 0.5f, posY - 0.5f, posZ + 0.5f), XMFLOAT3(1.0f, 0.0f, 1.0f) });
+	this->vertices.push_back(VertexPositionColor{ XMFLOAT3(posX + 0.5f, posY + 0.5f, posZ - 0.5f), XMFLOAT3(1.0f, 1.0f, 0.0f) });
+	this->vertices.push_back(VertexPositionColor{ XMFLOAT3(posX + 0.5f, posY + 0.5f, posZ + 0.5f), XMFLOAT3(1.0f, 1.0f, 1.0f) });
 
 	VertexPositionColor* vertexArray = &this->vertices[0];
 
@@ -286,53 +290,53 @@ void Sample3DSceneRenderer::CreateBlock()
 	// For example: 0,2,1 means that the vertices with indexes
 	// 0, 2 and 1 from the vertex buffer compose the 
 	// first triangle of this mesh.
-	this->indices.push_back(0);
-	this->indices.push_back(2);
-	this->indices.push_back(1);
+	this->indices.push_back(oldVertexCount + 0);
+	this->indices.push_back(oldVertexCount + 2);
+	this->indices.push_back(oldVertexCount + 1);
 
-	this->indices.push_back(1);
-	this->indices.push_back(2);
-	this->indices.push_back(3);
+	this->indices.push_back(oldVertexCount + 1);
+	this->indices.push_back(oldVertexCount + 2);
+	this->indices.push_back(oldVertexCount + 3);
 
-	this->indices.push_back(4);
-	this->indices.push_back(5);
-	this->indices.push_back(6);
+	this->indices.push_back(oldVertexCount + 4);
+	this->indices.push_back(oldVertexCount + 5);
+	this->indices.push_back(oldVertexCount + 6);
 
-	this->indices.push_back(5);
-	this->indices.push_back(7);
-	this->indices.push_back(6);
+	this->indices.push_back(oldVertexCount + 5);
+	this->indices.push_back(oldVertexCount + 7);
+	this->indices.push_back(oldVertexCount + 6);
 
-	this->indices.push_back(0);
-	this->indices.push_back(1);
-	this->indices.push_back(5);
+	this->indices.push_back(oldVertexCount + 0);
+	this->indices.push_back(oldVertexCount + 1);
+	this->indices.push_back(oldVertexCount + 5);
 
-	this->indices.push_back(0);
-	this->indices.push_back(5);
-	this->indices.push_back(4);
+	this->indices.push_back(oldVertexCount + 0);
+	this->indices.push_back(oldVertexCount + 5);
+	this->indices.push_back(oldVertexCount + 4);
 
-	this->indices.push_back(2);
-	this->indices.push_back(6);
-	this->indices.push_back(7);
+	this->indices.push_back(oldVertexCount + 2);
+	this->indices.push_back(oldVertexCount + 6);
+	this->indices.push_back(oldVertexCount + 7);
 
-	this->indices.push_back(2);
-	this->indices.push_back(7);
-	this->indices.push_back(3);
+	this->indices.push_back(oldVertexCount + 2);
+	this->indices.push_back(oldVertexCount + 7);
+	this->indices.push_back(oldVertexCount + 3);
 
-	this->indices.push_back(0);
-	this->indices.push_back(4);
-	this->indices.push_back(6);
+	this->indices.push_back(oldVertexCount + 0);
+	this->indices.push_back(oldVertexCount + 4);
+	this->indices.push_back(oldVertexCount + 6);
 
-	this->indices.push_back(0);
-	this->indices.push_back(6);
-	this->indices.push_back(2);
+	this->indices.push_back(oldVertexCount + 0);
+	this->indices.push_back(oldVertexCount + 6);
+	this->indices.push_back(oldVertexCount + 2);
 
-	this->indices.push_back(1);
-	this->indices.push_back(3);
-	this->indices.push_back(7);
+	this->indices.push_back(oldVertexCount + 1);
+	this->indices.push_back(oldVertexCount + 3);
+	this->indices.push_back(oldVertexCount + 7);
 
-	this->indices.push_back(1);
-	this->indices.push_back(7);
-	this->indices.push_back(5);
+	this->indices.push_back(oldVertexCount + 1);
+	this->indices.push_back(oldVertexCount + 7);
+	this->indices.push_back(oldVertexCount + 5);
 
 	auto indexArray = &this->indices[0];
 
