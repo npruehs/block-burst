@@ -16,6 +16,7 @@
   <ItemGroup>
     <ClInclude Include="$(MSBuildThisFileDirectory)app.h" />
     <ClCompile Include="$(MSBuildThisFileDirectory)app.cpp" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)Block.h" />
     <ClInclude Include="$(MSBuildThisFileDirectory)BlockBurstMain.h" />
     <ClCompile Include="$(MSBuildThisFileDirectory)BlockBurstMain.cpp" />
     <ClInclude Include="$(MSBuildThisFileDirectory)pch.h" />

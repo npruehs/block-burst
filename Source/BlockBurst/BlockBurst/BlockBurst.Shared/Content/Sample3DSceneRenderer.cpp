@@ -82,8 +82,11 @@ void Sample3DSceneRenderer::Update(DX::StepTimer const& timer)
 // Rotate the 3D cube model a set amount of radians.
 void Sample3DSceneRenderer::Rotate(float radians)
 {
-	// Prepare to pass the updated model matrix to the shader
-	XMStoreFloat4x4(&m_constantBufferData.model, XMMatrixTranspose(XMMatrixRotationY(radians)));
+	for (auto it = this->blocks.begin(); it != this->blocks.end(); ++it)
+	{
+		Block& block = *it;
+		block.rotation = radians;
+	}
 }
 
 void Sample3DSceneRenderer::StartTracking()
@@ -117,64 +120,75 @@ void Sample3DSceneRenderer::Render()
 
 	auto context = m_deviceResources->GetD3DDeviceContext();
 
-	// Prepare the constant buffer to send it to the graphics device.
-	context->UpdateSubresource(
-		m_constantBuffer.Get(),
-		0,
-		NULL,
-		&m_constantBufferData,
-		0,
-		0
-		);
+	for (auto it = this->blocks.begin(); it != this->blocks.end(); ++it)
+	{
+		Block& block = *it;
 
-	// Each vertex is one instance of the VertexPositionColor struct.
-	UINT stride = sizeof(VertexPositionColor);
-	UINT offset = 0;
-	context->IASetVertexBuffers(
-		0,
-		1,
-		m_vertexBuffer.GetAddressOf(),
-		&stride,
-		&offset
-		);
+		// Prepare to pass the updated model matrix to the shader
+		XMStoreFloat4x4(&m_constantBufferData.model, XMMatrixTranspose(
+			XMMatrixRotationRollPitchYaw(0, block.rotation, 0) *
+			XMMatrixTranslation(block.posX, block.posY, block.posZ)
+			));
 
-	context->IASetIndexBuffer(
-		m_indexBuffer.Get(),
-		DXGI_FORMAT_R16_UINT, // Each index is one 16-bit unsigned integer (short).
-		0
-		);
+		// Prepare the constant buffer to send it to the graphics device.
+		context->UpdateSubresource(
+			m_constantBuffer.Get(),
+			0,
+			NULL,
+			&m_constantBufferData,
+			0,
+			0
+			);
 
-	context->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
+		// Each vertex is one instance of the VertexPositionColor struct.
+		UINT stride = sizeof(VertexPositionColor);
+		UINT offset = 0;
+		context->IASetVertexBuffers(
+			0,
+			1,
+			m_vertexBuffer.GetAddressOf(),
+			&stride,
+			&offset
+			);
 
-	context->IASetInputLayout(m_inputLayout.Get());
+		context->IASetIndexBuffer(
+			m_indexBuffer.Get(),
+			DXGI_FORMAT_R16_UINT, // Each index is one 16-bit unsigned integer (short).
+			0
+			);
 
-	// Attach our vertex shader.
-	context->VSSetShader(
-		m_vertexShader.Get(),
-		nullptr,
-		0
-		);
+		context->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
 
-	// Send the constant buffer to the graphics device.
-	context->VSSetConstantBuffers(
-		0,
-		1,
-		m_constantBuffer.GetAddressOf()
-		);
+		context->IASetInputLayout(m_inputLayout.Get());
 
-	// Attach our pixel shader.
-	context->PSSetShader(
-		m_pixelShader.Get(),
-		nullptr,
-		0
-		);
+		// Attach our vertex shader.
+		context->VSSetShader(
+			m_vertexShader.Get(),
+			nullptr,
+			0
+			);
 
-	// Draw the objects.
-	context->DrawIndexed(
-		m_indexCount,
-		0,
-		0
-		);
+		// Send the constant buffer to the graphics device.
+		context->VSSetConstantBuffers(
+			0,
+			1,
+			m_constantBuffer.GetAddressOf()
+			);
+
+		// Attach our pixel shader.
+		context->PSSetShader(
+			m_pixelShader.Get(),
+			nullptr,
+			0
+			);
+
+		// Draw the objects.
+		context->DrawIndexed(
+			36,
+			0,
+			block.indexOffset
+			);
+	}
 }
 
 void Sample3DSceneRenderer::CreateDeviceDependentResources()
@@ -236,6 +250,8 @@ void Sample3DSceneRenderer::CreateDeviceDependentResources()
 	auto createCubeTask = (createPSTask && createVSTask).then([this] () {
 		CreateBlock(-1.0f, 0.0f, 0.0f);
 		CreateBlock(1.0f, 0.0f, 0.0f);
+
+		BuildGPUBuffers();
 	});
 
 	// Once the cube is loaded, the object is ready to be rendered.
@@ -257,19 +273,93 @@ void Sample3DSceneRenderer::ReleaseDeviceDependentResources()
 
 void Sample3DSceneRenderer::CreateBlock(float posX, float posY, float posZ)
 {
-	// Get current vertex count to be able to get the correct triangle incides later.
-	auto oldVertexCount = this->vertices.size();
+	auto block = Block();
 
+	block.posX = posX;
+	block.posY = posY;
+	block.posZ = posZ;
+	
+	block.vertices[0] = VertexPositionColor{ XMFLOAT3(-0.5f, -0.5f, -0.5f), XMFLOAT3(0.0f, 0.0f, 0.0f) };
+	block.vertices[1] = VertexPositionColor{ XMFLOAT3(-0.5f, -0.5f, +0.5f), XMFLOAT3(0.0f, 0.0f, 1.0f) };
+	block.vertices[2] = VertexPositionColor{ XMFLOAT3(-0.5f, +0.5f, -0.5f), XMFLOAT3(0.0f, 1.0f, 0.0f) };
+	block.vertices[3] = VertexPositionColor{ XMFLOAT3(-0.5f, +0.5f, +0.5f), XMFLOAT3(0.0f, 1.0f, 1.0f) };
+	block.vertices[4] = VertexPositionColor{ XMFLOAT3(+0.5f, -0.5f, -0.5f), XMFLOAT3(1.0f, 0.0f, 0.0f) };
+	block.vertices[5] = VertexPositionColor{ XMFLOAT3(+0.5f, -0.5f, +0.5f), XMFLOAT3(1.0f, 0.0f, 1.0f) };
+	block.vertices[6] = VertexPositionColor{ XMFLOAT3(+0.5f, +0.5f, -0.5f), XMFLOAT3(1.0f, 1.0f, 0.0f) };
+	block.vertices[7] = VertexPositionColor{ XMFLOAT3(+0.5f, +0.5f, +0.5f), XMFLOAT3(1.0f, 1.0f, 1.0f) };
+
+	this->blocks.push_back(block);
+}
+
+void Sample3DSceneRenderer::BuildGPUBuffers()
+{
 	// Add block vertices to scene.
-	this->vertices.push_back(VertexPositionColor{ XMFLOAT3(posX - 0.5f, posY - 0.5f, posZ - 0.5f), XMFLOAT3(0.0f, 0.0f, 0.0f) });
-	this->vertices.push_back(VertexPositionColor{ XMFLOAT3(posX - 0.5f, posY - 0.5f, posZ + 0.5f), XMFLOAT3(0.0f, 0.0f, 1.0f) });
-	this->vertices.push_back(VertexPositionColor{ XMFLOAT3(posX - 0.5f, posY + 0.5f, posZ - 0.5f), XMFLOAT3(0.0f, 1.0f, 0.0f) });
-	this->vertices.push_back(VertexPositionColor{ XMFLOAT3(posX - 0.5f, posY + 0.5f, posZ + 0.5f), XMFLOAT3(0.0f, 1.0f, 1.0f) });
-	this->vertices.push_back(VertexPositionColor{ XMFLOAT3(posX + 0.5f, posY - 0.5f, posZ - 0.5f), XMFLOAT3(1.0f, 0.0f, 0.0f) });
-	this->vertices.push_back(VertexPositionColor{ XMFLOAT3(posX + 0.5f, posY - 0.5f, posZ + 0.5f), XMFLOAT3(1.0f, 0.0f, 1.0f) });
-	this->vertices.push_back(VertexPositionColor{ XMFLOAT3(posX + 0.5f, posY + 0.5f, posZ - 0.5f), XMFLOAT3(1.0f, 1.0f, 0.0f) });
-	this->vertices.push_back(VertexPositionColor{ XMFLOAT3(posX + 0.5f, posY + 0.5f, posZ + 0.5f), XMFLOAT3(1.0f, 1.0f, 1.0f) });
+	this->vertices.clear();
+	this->indices.clear();
 
+	for (auto blockIndex = 0; blockIndex < this->blocks.size(); ++blockIndex)
+	{
+		Block& block = this->blocks[blockIndex];
+
+		for (auto i = 0; i < 8; ++i)
+		{
+			this->vertices.push_back(block.vertices[i]);
+
+			auto indexOffset = blockIndex * 8;
+
+			this->indices.push_back(blockIndex + 0);
+			this->indices.push_back(blockIndex + 2);
+			this->indices.push_back(blockIndex + 1);
+
+			this->indices.push_back(blockIndex + 1);
+			this->indices.push_back(blockIndex + 2);
+			this->indices.push_back(blockIndex + 3);
+
+			this->indices.push_back(blockIndex + 4);
+			this->indices.push_back(blockIndex + 5);
+			this->indices.push_back(blockIndex + 6);
+
+			this->indices.push_back(blockIndex + 5);
+			this->indices.push_back(blockIndex + 7);
+			this->indices.push_back(blockIndex + 6);
+
+			this->indices.push_back(blockIndex + 0);
+			this->indices.push_back(blockIndex + 1);
+			this->indices.push_back(blockIndex + 5);
+
+			this->indices.push_back(blockIndex + 0);
+			this->indices.push_back(blockIndex + 5);
+			this->indices.push_back(blockIndex + 4);
+
+			this->indices.push_back(blockIndex + 2);
+			this->indices.push_back(blockIndex + 6);
+			this->indices.push_back(blockIndex + 7);
+
+			this->indices.push_back(blockIndex + 2);
+			this->indices.push_back(blockIndex + 7);
+			this->indices.push_back(blockIndex + 3);
+
+			this->indices.push_back(blockIndex + 0);
+			this->indices.push_back(blockIndex + 4);
+			this->indices.push_back(blockIndex + 6);
+
+			this->indices.push_back(blockIndex + 0);
+			this->indices.push_back(blockIndex + 6);
+			this->indices.push_back(blockIndex + 2);
+
+			this->indices.push_back(blockIndex + 1);
+			this->indices.push_back(blockIndex + 3);
+			this->indices.push_back(blockIndex + 7);
+
+			this->indices.push_back(blockIndex + 1);
+			this->indices.push_back(blockIndex + 7);
+			this->indices.push_back(blockIndex + 5);
+
+			block.indexOffset = indexOffset;
+		}
+	}
+
+	// Create vertex buffer.
 	VertexPositionColor* vertexArray = &this->vertices[0];
 
 	D3D11_SUBRESOURCE_DATA vertexBufferData = { 0 };
@@ -290,54 +380,6 @@ void Sample3DSceneRenderer::CreateBlock(float posX, float posY, float posZ)
 	// For example: 0,2,1 means that the vertices with indexes
 	// 0, 2 and 1 from the vertex buffer compose the 
 	// first triangle of this mesh.
-	this->indices.push_back(oldVertexCount + 0);
-	this->indices.push_back(oldVertexCount + 2);
-	this->indices.push_back(oldVertexCount + 1);
-
-	this->indices.push_back(oldVertexCount + 1);
-	this->indices.push_back(oldVertexCount + 2);
-	this->indices.push_back(oldVertexCount + 3);
-
-	this->indices.push_back(oldVertexCount + 4);
-	this->indices.push_back(oldVertexCount + 5);
-	this->indices.push_back(oldVertexCount + 6);
-
-	this->indices.push_back(oldVertexCount + 5);
-	this->indices.push_back(oldVertexCount + 7);
-	this->indices.push_back(oldVertexCount + 6);
-
-	this->indices.push_back(oldVertexCount + 0);
-	this->indices.push_back(oldVertexCount + 1);
-	this->indices.push_back(oldVertexCount + 5);
-
-	this->indices.push_back(oldVertexCount + 0);
-	this->indices.push_back(oldVertexCount + 5);
-	this->indices.push_back(oldVertexCount + 4);
-
-	this->indices.push_back(oldVertexCount + 2);
-	this->indices.push_back(oldVertexCount + 6);
-	this->indices.push_back(oldVertexCount + 7);
-
-	this->indices.push_back(oldVertexCount + 2);
-	this->indices.push_back(oldVertexCount + 7);
-	this->indices.push_back(oldVertexCount + 3);
-
-	this->indices.push_back(oldVertexCount + 0);
-	this->indices.push_back(oldVertexCount + 4);
-	this->indices.push_back(oldVertexCount + 6);
-
-	this->indices.push_back(oldVertexCount + 0);
-	this->indices.push_back(oldVertexCount + 6);
-	this->indices.push_back(oldVertexCount + 2);
-
-	this->indices.push_back(oldVertexCount + 1);
-	this->indices.push_back(oldVertexCount + 3);
-	this->indices.push_back(oldVertexCount + 7);
-
-	this->indices.push_back(oldVertexCount + 1);
-	this->indices.push_back(oldVertexCount + 7);
-	this->indices.push_back(oldVertexCount + 5);
-
 	auto indexArray = &this->indices[0];
 
 	m_indexCount = this->indices.size();

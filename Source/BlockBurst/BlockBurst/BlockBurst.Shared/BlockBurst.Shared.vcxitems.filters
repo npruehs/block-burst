@@ -19,6 +19,7 @@
     <ClInclude Include="$(MSBuildThisFileDirectory)Content\SampleFpsTextRenderer.h">
       <Filter>Content</Filter>
     </ClInclude>
+    <ClInclude Include="$(MSBuildThisFileDirectory)Block.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="$(MSBuildThisFileDirectory)app.cpp" />

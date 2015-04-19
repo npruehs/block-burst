@@ -4,6 +4,8 @@
 #include "ShaderStructures.h"
 #include "..\Common\StepTimer.h"
 
+#include "..\Block.h"
+
 namespace BlockBurst
 {
 	// This sample renderer instantiates a basic rendering pipeline.
@@ -52,8 +54,14 @@ namespace BlockBurst
 		// Triangle list of vertices of this scene to be rendered.
 		std::vector<unsigned short> indices;
 
+		// Blocks in the scene.
+		std::vector<Block> blocks;
+
 		// Creates a new block at the specified position and adds it to the scene to be rendered.
 		void CreateBlock(float posX, float posY, float posZ);
+
+		// Re-builds the GPU vertex and index buffers for the scene.
+		void BuildGPUBuffers();
 	};
 }
 
