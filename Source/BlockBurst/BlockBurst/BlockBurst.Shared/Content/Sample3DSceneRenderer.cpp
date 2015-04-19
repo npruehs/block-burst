@@ -57,9 +57,9 @@ void Sample3DSceneRenderer::CreateWindowSizeDependentResources()
 		XMMatrixTranspose(perspectiveMatrix * orientationMatrix)
 		);
 
-	// Eye is at (0,0.7,1.5), looking at point (0,-0.1,0) with the up-vector along the y-axis.
-	static const XMVECTORF32 eye = { 0.0f, 0.7f, 1.5f, 0.0f };
-	static const XMVECTORF32 at = { 0.0f, -0.1f, 0.0f, 0.0f };
+	// Eye is at (0,0,-5), looking at point (0,0,0) with the up-vector along the y-axis.
+	static const XMVECTORF32 eye = { 0.0f, 0.0f, -5.0f, 0.0f };
+	static const XMVECTORF32 at = { 0.0f, 0.0f, 0.0f, 0.0f };
 	static const XMVECTORF32 up = { 0.0f, 1.0f, 0.0f, 0.0f };
 
 	XMStoreFloat4x4(&m_constantBufferData.view, XMMatrixTranspose(XMMatrixLookAtRH(eye, at, up)));
@@ -248,8 +248,8 @@ void Sample3DSceneRenderer::CreateDeviceDependentResources()
 
 	// Once both shaders are loaded, create the mesh.
 	auto createCubeTask = (createPSTask && createVSTask).then([this] () {
-		CreateBlock(-1.0f, 0.0f, 0.0f);
-		CreateBlock(1.0f, 0.0f, 0.0f);
+		CreateBlock(-3.0f, 0.0f, 0.0f);
+		CreateBlock(3.0f, 0.0f, 0.0f);
 
 		BuildGPUBuffers();
 	});
