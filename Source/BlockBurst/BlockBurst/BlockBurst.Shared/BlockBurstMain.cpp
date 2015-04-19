@@ -4,6 +4,7 @@
 
 using namespace BlockBurst;
 
+using namespace DirectX;
 using namespace Windows::Foundation;
 using namespace Windows::System::Threading;
 using namespace Concurrency;
@@ -26,6 +27,8 @@ BlockBurstMain::BlockBurstMain(const std::shared_ptr<DX::DeviceResources>& devic
 	m_timer.SetFixedTimeStep(true);
 	m_timer.SetTargetElapsedSeconds(1.0 / 60);
 	*/
+
+	this->blocks = std::make_shared<std::vector<Block>>();
 }
 
 BlockBurstMain::~BlockBurstMain()
@@ -44,9 +47,35 @@ void BlockBurstMain::CreateWindowSizeDependentResources()
 // Updates the application state once per frame.
 void BlockBurstMain::Update() 
 {
+	if (!this->initialized)
+	{
+		if (this->m_sceneRenderer->IsInitialized())
+		{
+			this->CreateBlock(-3.0f, 0.0f, 0.0f);
+			this->CreateBlock(3.0f, 0.0f, 0.0f);
+
+			this->m_sceneRenderer->BuildGPUBuffers(this->blocks);
+
+			this->initialized = true;
+		}
+
+		return;
+	}
+
 	// Update scene objects.
 	m_timer.Tick([&]()
 	{
+		// Convert degrees to radians, then convert seconds to rotation angle
+		float radiansPerSecond = XMConvertToRadians(45);
+		double totalRotation = m_timer.GetTotalSeconds() * radiansPerSecond;
+		float radians = static_cast<float>(fmod(totalRotation, XM_2PI));
+
+		for (auto it = this->blocks->begin(); it != this->blocks->end(); ++it)
+		{
+			Block& block = *it;
+			block.rotation = radians;
+		}
+
 		// TODO: Replace this with your app's content update functions.
 		m_sceneRenderer->Update(m_timer);
 		m_fpsTextRenderer->Update(m_timer);
@@ -98,4 +127,24 @@ void BlockBurstMain::OnDeviceRestored()
 	m_sceneRenderer->CreateDeviceDependentResources();
 	m_fpsTextRenderer->CreateDeviceDependentResources();
 	CreateWindowSizeDependentResources();
+}
+
+void BlockBurstMain::CreateBlock(float posX, float posY, float posZ)
+{
+	auto block = Block();
+
+	block.posX = posX;
+	block.posY = posY;
+	block.posZ = posZ;
+
+	block.vertices[0] = VertexPositionColor{ XMFLOAT3(-0.5f, -0.5f, -0.5f), XMFLOAT3(0.0f, 0.0f, 0.0f) };
+	block.vertices[1] = VertexPositionColor{ XMFLOAT3(-0.5f, -0.5f, +0.5f), XMFLOAT3(0.0f, 0.0f, 1.0f) };
+	block.vertices[2] = VertexPositionColor{ XMFLOAT3(-0.5f, +0.5f, -0.5f), XMFLOAT3(0.0f, 1.0f, 0.0f) };
+	block.vertices[3] = VertexPositionColor{ XMFLOAT3(-0.5f, +0.5f, +0.5f), XMFLOAT3(0.0f, 1.0f, 1.0f) };
+	block.vertices[4] = VertexPositionColor{ XMFLOAT3(+0.5f, -0.5f, -0.5f), XMFLOAT3(1.0f, 0.0f, 0.0f) };
+	block.vertices[5] = VertexPositionColor{ XMFLOAT3(+0.5f, -0.5f, +0.5f), XMFLOAT3(1.0f, 0.0f, 1.0f) };
+	block.vertices[6] = VertexPositionColor{ XMFLOAT3(+0.5f, +0.5f, -0.5f), XMFLOAT3(1.0f, 1.0f, 0.0f) };
+	block.vertices[7] = VertexPositionColor{ XMFLOAT3(+0.5f, +0.5f, +0.5f), XMFLOAT3(1.0f, 1.0f, 1.0f) };
+
+	this->blocks->push_back(block);
 }

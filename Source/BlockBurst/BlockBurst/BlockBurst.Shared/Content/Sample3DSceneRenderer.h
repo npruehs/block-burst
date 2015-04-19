@@ -4,7 +4,7 @@
 #include "ShaderStructures.h"
 #include "..\Common\StepTimer.h"
 
-#include "..\Block.h"
+#include "../Block.h"
 
 namespace BlockBurst
 {
@@ -23,13 +23,17 @@ namespace BlockBurst
 		void StopTracking();
 		bool IsTracking() { return m_tracking; }
 
+		bool IsInitialized();
+
+		// Re-builds the GPU vertex and index buffers for the scene.
+		void BuildGPUBuffers(std::shared_ptr<std::vector<Block>> blocks);
 
 	private:
 		void Rotate(float radians);
 
-	private:
 		// Cached pointer to device resources.
 		std::shared_ptr<DX::DeviceResources> m_deviceResources;
+		std::shared_ptr<std::vector<Block>> blocks;
 
 		// Direct3D resources for cube geometry.
 		Microsoft::WRL::ComPtr<ID3D11InputLayout>	m_inputLayout;
@@ -53,15 +57,6 @@ namespace BlockBurst
 
 		// Triangle list of vertices of this scene to be rendered.
 		std::vector<unsigned short> indices;
-
-		// Blocks in the scene.
-		std::vector<Block> blocks;
-
-		// Creates a new block at the specified position and adds it to the scene to be rendered.
-		void CreateBlock(float posX, float posY, float posZ);
-
-		// Re-builds the GPU vertex and index buffers for the scene.
-		void BuildGPUBuffers();
 	};
 }
 

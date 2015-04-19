@@ -68,25 +68,11 @@ void Sample3DSceneRenderer::CreateWindowSizeDependentResources()
 // Called once per frame, rotates the cube and calculates the model and view matrices.
 void Sample3DSceneRenderer::Update(DX::StepTimer const& timer)
 {
-	if (!m_tracking)
-	{
-		// Convert degrees to radians, then convert seconds to rotation angle
-		float radiansPerSecond = XMConvertToRadians(m_degreesPerSecond);
-		double totalRotation = timer.GetTotalSeconds() * radiansPerSecond;
-		float radians = static_cast<float>(fmod(totalRotation, XM_2PI));
-
-		Rotate(radians);
-	}
 }
 
 // Rotate the 3D cube model a set amount of radians.
 void Sample3DSceneRenderer::Rotate(float radians)
 {
-	for (auto it = this->blocks.begin(); it != this->blocks.end(); ++it)
-	{
-		Block& block = *it;
-		block.rotation = radians;
-	}
 }
 
 void Sample3DSceneRenderer::StartTracking()
@@ -120,7 +106,7 @@ void Sample3DSceneRenderer::Render()
 
 	auto context = m_deviceResources->GetD3DDeviceContext();
 
-	for (auto it = this->blocks.begin(); it != this->blocks.end(); ++it)
+	for (auto it = this->blocks->begin(); it != this->blocks->end(); ++it)
 	{
 		Block& block = *it;
 
@@ -246,16 +232,7 @@ void Sample3DSceneRenderer::CreateDeviceDependentResources()
 			);
 	});
 
-	// Once both shaders are loaded, create the mesh.
 	auto createCubeTask = (createPSTask && createVSTask).then([this] () {
-		CreateBlock(-3.0f, 0.0f, 0.0f);
-		CreateBlock(3.0f, 0.0f, 0.0f);
-
-		BuildGPUBuffers();
-	});
-
-	// Once the cube is loaded, the object is ready to be rendered.
-	createCubeTask.then([this] () {
 		m_loadingComplete = true;
 	});
 }
@@ -271,35 +248,20 @@ void Sample3DSceneRenderer::ReleaseDeviceDependentResources()
 	m_indexBuffer.Reset();
 }
 
-void Sample3DSceneRenderer::CreateBlock(float posX, float posY, float posZ)
+bool Sample3DSceneRenderer::IsInitialized()
 {
-	auto block = Block();
-
-	block.posX = posX;
-	block.posY = posY;
-	block.posZ = posZ;
-	
-	block.vertices[0] = VertexPositionColor{ XMFLOAT3(-0.5f, -0.5f, -0.5f), XMFLOAT3(0.0f, 0.0f, 0.0f) };
-	block.vertices[1] = VertexPositionColor{ XMFLOAT3(-0.5f, -0.5f, +0.5f), XMFLOAT3(0.0f, 0.0f, 1.0f) };
-	block.vertices[2] = VertexPositionColor{ XMFLOAT3(-0.5f, +0.5f, -0.5f), XMFLOAT3(0.0f, 1.0f, 0.0f) };
-	block.vertices[3] = VertexPositionColor{ XMFLOAT3(-0.5f, +0.5f, +0.5f), XMFLOAT3(0.0f, 1.0f, 1.0f) };
-	block.vertices[4] = VertexPositionColor{ XMFLOAT3(+0.5f, -0.5f, -0.5f), XMFLOAT3(1.0f, 0.0f, 0.0f) };
-	block.vertices[5] = VertexPositionColor{ XMFLOAT3(+0.5f, -0.5f, +0.5f), XMFLOAT3(1.0f, 0.0f, 1.0f) };
-	block.vertices[6] = VertexPositionColor{ XMFLOAT3(+0.5f, +0.5f, -0.5f), XMFLOAT3(1.0f, 1.0f, 0.0f) };
-	block.vertices[7] = VertexPositionColor{ XMFLOAT3(+0.5f, +0.5f, +0.5f), XMFLOAT3(1.0f, 1.0f, 1.0f) };
-
-	this->blocks.push_back(block);
+	return this->m_loadingComplete;
 }
 
-void Sample3DSceneRenderer::BuildGPUBuffers()
+void Sample3DSceneRenderer::BuildGPUBuffers(std::shared_ptr<std::vector<Block>> blocks)
 {
 	// Add block vertices to scene.
 	this->vertices.clear();
 	this->indices.clear();
 
-	for (auto blockIndex = 0; blockIndex < this->blocks.size(); ++blockIndex)
+	for (auto blockIndex = 0; blockIndex < blocks->size(); ++blockIndex)
 	{
-		Block& block = this->blocks[blockIndex];
+		Block& block = (*blocks)[blockIndex];
 
 		for (auto i = 0; i < 8; ++i)
 		{
@@ -396,4 +358,6 @@ void Sample3DSceneRenderer::BuildGPUBuffers()
 		&m_indexBuffer
 		)
 		);
+
+	this->blocks = blocks;
 }

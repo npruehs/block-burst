@@ -5,6 +5,8 @@
 #include "Content\Sample3DSceneRenderer.h"
 #include "Content\SampleFpsTextRenderer.h"
 
+#include "Block.h"
+
 // Renders Direct2D and 3D content on the screen.
 namespace BlockBurst
 {
@@ -31,5 +33,13 @@ namespace BlockBurst
 
 		// Rendering loop timer.
 		DX::StepTimer m_timer;
+
+		bool initialized;
+
+		// Blocks in the scene.
+		std::shared_ptr<std::vector<Block>> blocks;
+
+		// Creates a new block at the specified position and adds it to the scene to be rendered.
+		void CreateBlock(float posX, float posY, float posZ);
 	};
 }
