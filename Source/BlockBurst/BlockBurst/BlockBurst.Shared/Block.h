@@ -1,12 +1,13 @@
 #pragma once
 
+using namespace DirectX;
+
 namespace BlockBurst
 {
 	struct Block
 	{
-		float posX;
-		float posY;
-		float posZ;
+		XMFLOAT3 position;
+		XMFLOAT3 velocity;
 
 		float rotation;
 

@@ -11,7 +11,8 @@ using namespace Concurrency;
 
 // Loads and initializes application assets when the application is loaded.
 BlockBurstMain::BlockBurstMain(const std::shared_ptr<DX::DeviceResources>& deviceResources) :
-	m_deviceResources(deviceResources)
+	m_deviceResources(deviceResources),
+	difficutly(1.0f)
 {
 	// Register to be notified if the Device is lost or recreated
 	m_deviceResources->RegisterDeviceNotify(this);
@@ -51,8 +52,8 @@ void BlockBurstMain::Update()
 	{
 		if (this->m_sceneRenderer->IsInitialized())
 		{
-			this->CreateBlock(-3.0f, 0.0f, 0.0f);
-			this->CreateBlock(3.0f, 0.0f, 0.0f);
+			this->CreateBlock(XMFLOAT3(-3.0f, 0.0f, 0.0f));
+			this->CreateBlock(XMFLOAT3(3.0f, 0.0f, 0.0f));
 
 			this->m_sceneRenderer->BuildGPUBuffers(this->blocks);
 
@@ -65,6 +66,8 @@ void BlockBurstMain::Update()
 	// Update scene objects.
 	m_timer.Tick([&]()
 	{
+		auto dt = m_timer.GetElapsedSeconds();
+
 		// Convert degrees to radians, then convert seconds to rotation angle
 		float radiansPerSecond = XMConvertToRadians(45);
 		double totalRotation = m_timer.GetTotalSeconds() * radiansPerSecond;
@@ -74,6 +77,11 @@ void BlockBurstMain::Update()
 		{
 			Block& block = *it;
 			block.rotation = radians;
+
+			block.position = XMFLOAT3(
+				block.position.x + block.velocity.x * dt,
+				block.position.y + block.velocity.y * dt,
+				block.position.z + block.velocity.z * dt);
 		}
 
 		// TODO: Replace this with your app's content update functions.
@@ -126,7 +134,7 @@ void BlockBurstMain::OnTap(float screenPositionX, float screenPositionY)
 	// Find closest block.
 	for (auto it = this->blocks->begin(); it != this->blocks->end(); ++it)
 	{
-		if ((*it).posZ < (*closestBlockIt).posZ)
+		if ((*it).position.z < (*closestBlockIt).position.z)
 		{
 			closestBlockIt = it;
 		}
@@ -134,16 +142,14 @@ void BlockBurstMain::OnTap(float screenPositionX, float screenPositionY)
 
 	// Get spawn position for new block.
 	Block& closestBlock = *closestBlockIt;
-	auto x = closestBlock.posX;
-	auto y = closestBlock.posY;
-	auto z = closestBlock.posZ;
+	auto position = closestBlock.position;
 
 	// Remove closest block.
 	this->blocks->erase(closestBlockIt);
 	
 	// Add two new blocks.
-	this->CreateBlock(x - 1, y, z);
-	this->CreateBlock(x + 1, y, z);
+	this->CreateBlock(XMFLOAT3(position.x - 1, position.y, position.z));
+	this->CreateBlock(XMFLOAT3(position.x + 1, position.y, position.z));
 
 	// Rebuild vertex and index buffers.
 	this->m_sceneRenderer->BuildGPUBuffers(this->blocks);
@@ -164,13 +170,11 @@ void BlockBurstMain::OnDeviceRestored()
 	CreateWindowSizeDependentResources();
 }
 
-void BlockBurstMain::CreateBlock(float posX, float posY, float posZ)
+void BlockBurstMain::CreateBlock(XMFLOAT3 position)
 {
 	auto block = Block();
-
-	block.posX = posX;
-	block.posY = posY;
-	block.posZ = posZ;
+	block.position = position;
+	block.velocity = XMFLOAT3(0.0f, 0.0f, -this->difficutly);
 
 	block.vertices[0] = VertexPositionColor{ XMFLOAT3(-0.5f, -0.5f, -0.5f), XMFLOAT3(0.0f, 0.0f, 0.0f) };
 	block.vertices[1] = VertexPositionColor{ XMFLOAT3(-0.5f, -0.5f, +0.5f), XMFLOAT3(0.0f, 0.0f, 1.0f) };

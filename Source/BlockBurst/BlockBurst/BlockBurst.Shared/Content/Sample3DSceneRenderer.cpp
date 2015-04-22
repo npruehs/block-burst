@@ -87,7 +87,7 @@ void Sample3DSceneRenderer::Render()
 		// Prepare to pass the updated model matrix to the shader
 		XMStoreFloat4x4(&m_constantBufferData.model, XMMatrixTranspose(
 			XMMatrixRotationRollPitchYaw(0, block.rotation, 0) *
-			XMMatrixTranslation(block.posX, block.posY, block.posZ)
+			XMMatrixTranslation(block.position.x, block.position.y, block.position.z)
 			));
 
 		// Prepare the constant buffer to send it to the graphics device.

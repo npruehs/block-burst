@@ -41,7 +41,10 @@ namespace BlockBurst
 		// Blocks in the scene.
 		std::shared_ptr<std::vector<Block>> blocks;
 
+		// Game difficulty. Affects velocity of blocks.
+		float difficutly;
+
 		// Creates a new block at the specified position and adds it to the scene to be rendered.
-		void CreateBlock(float posX, float posY, float posZ);
+		void CreateBlock(XMFLOAT3 position);
 	};
 }
