@@ -101,6 +101,33 @@ void BlockBurstMain::Update()
 			this->spawnTimeRemaining = this->difficulty;
 		}
 
+		// Score blocks that reach the camera.
+		auto it = this->blocks->begin();
+
+		for (; it != this->blocks->end(); ++it)
+		{
+			if ((*it).position.z < -5.0f)
+			{
+				break;
+			}
+		}
+
+		if (it != this->blocks->end())
+		{
+			Block& block = *it;
+
+			if (block.blockType == BlockType::Good)
+			{
+				++this->score;
+			}
+			else if (block.blockType == BlockType::Bad)
+			{
+				--this->score;
+			}
+			
+			this->blocks->erase(it);
+		}
+
 		// TODO: Replace this with your app's content update functions.
 		m_sceneRenderer->Update(m_timer);
 		m_fpsTextRenderer->Update(m_timer);
