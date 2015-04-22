@@ -47,7 +47,10 @@ namespace BlockBurst
 		// Time until next block is spawned, in seconds.
 		float spawnTimeRemaining;
 
+		// Points scored by collecting blocks.
+		int score;
+
 		// Creates a new block at the specified position and adds it to the scene to be rendered.
-		void CreateBlock(XMFLOAT3 position);
+		void CreateBlock(XMFLOAT3 position, BlockType blockType);
 	};
 }

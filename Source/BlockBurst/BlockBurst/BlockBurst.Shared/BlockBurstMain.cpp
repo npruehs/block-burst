@@ -53,8 +53,8 @@ void BlockBurstMain::Update()
 	{
 		if (this->m_sceneRenderer->IsInitialized())
 		{
-			this->CreateBlock(XMFLOAT3(-3.0f, 0.0f, 0.0f));
-			this->CreateBlock(XMFLOAT3(3.0f, 0.0f, 0.0f));
+			this->CreateBlock(XMFLOAT3(-3.0f, 0.0f, 0.0f), BlockType::Good);
+			this->CreateBlock(XMFLOAT3(3.0f, 0.0f, 0.0f), BlockType::Bad);
 
 			this->m_sceneRenderer->BuildGPUBuffers(this->blocks);
 
@@ -94,7 +94,9 @@ void BlockBurstMain::Update()
 		if (this->spawnTimeRemaining <= 0)
 		{
 			int randomX = rand() % 10 - 5;
-			this->CreateBlock(XMFLOAT3(randomX, 0.0f, 0.0f));
+			int randomType = rand() % 2;
+
+			this->CreateBlock(XMFLOAT3(randomX, 0.0f, 0.0f), (BlockType)randomType);
 			this->m_sceneRenderer->BuildGPUBuffers(this->blocks);
 			this->spawnTimeRemaining = this->difficulty;
 		}
@@ -163,8 +165,8 @@ void BlockBurstMain::OnTap(float screenPositionX, float screenPositionY)
 	this->blocks->erase(closestBlockIt);
 	
 	// Add two new blocks.
-	this->CreateBlock(XMFLOAT3(position.x - 1, position.y, position.z));
-	this->CreateBlock(XMFLOAT3(position.x + 1, position.y, position.z));
+	this->CreateBlock(XMFLOAT3(position.x - 1, position.y, position.z), BlockType::Dead);
+	this->CreateBlock(XMFLOAT3(position.x + 1, position.y, position.z), BlockType::Dead);
 
 	// Rebuild vertex and index buffers.
 	this->m_sceneRenderer->BuildGPUBuffers(this->blocks);
@@ -185,20 +187,36 @@ void BlockBurstMain::OnDeviceRestored()
 	CreateWindowSizeDependentResources();
 }
 
-void BlockBurstMain::CreateBlock(XMFLOAT3 position)
+void BlockBurstMain::CreateBlock(XMFLOAT3 position, BlockType blockType)
 {
 	auto block = Block();
+
 	block.position = position;
 	block.velocity = XMFLOAT3(0.0f, 0.0f, -this->difficulty);
+	block.blockType = blockType;
 
-	block.vertices[0] = VertexPositionColor{ XMFLOAT3(-0.5f, -0.5f, -0.5f), XMFLOAT3(0.0f, 0.0f, 0.0f) };
-	block.vertices[1] = VertexPositionColor{ XMFLOAT3(-0.5f, -0.5f, +0.5f), XMFLOAT3(0.0f, 0.0f, 1.0f) };
-	block.vertices[2] = VertexPositionColor{ XMFLOAT3(-0.5f, +0.5f, -0.5f), XMFLOAT3(0.0f, 1.0f, 0.0f) };
-	block.vertices[3] = VertexPositionColor{ XMFLOAT3(-0.5f, +0.5f, +0.5f), XMFLOAT3(0.0f, 1.0f, 1.0f) };
-	block.vertices[4] = VertexPositionColor{ XMFLOAT3(+0.5f, -0.5f, -0.5f), XMFLOAT3(1.0f, 0.0f, 0.0f) };
-	block.vertices[5] = VertexPositionColor{ XMFLOAT3(+0.5f, -0.5f, +0.5f), XMFLOAT3(1.0f, 0.0f, 1.0f) };
-	block.vertices[6] = VertexPositionColor{ XMFLOAT3(+0.5f, +0.5f, -0.5f), XMFLOAT3(1.0f, 1.0f, 0.0f) };
-	block.vertices[7] = VertexPositionColor{ XMFLOAT3(+0.5f, +0.5f, +0.5f), XMFLOAT3(1.0f, 1.0f, 1.0f) };
+	if (blockType == BlockType::Dead)
+	{
+		block.vertices[0] = VertexPositionColor{ XMFLOAT3(-0.5f, -0.5f, -0.5f), XMFLOAT3(0.0f, 0.0f, 0.0f) };
+		block.vertices[1] = VertexPositionColor{ XMFLOAT3(-0.5f, -0.5f, +0.5f), XMFLOAT3(0.0f, 0.0f, 0.0f) };
+		block.vertices[2] = VertexPositionColor{ XMFLOAT3(-0.5f, +0.5f, -0.5f), XMFLOAT3(0.0f, 0.0f, 0.0f) };
+		block.vertices[3] = VertexPositionColor{ XMFLOAT3(-0.5f, +0.5f, +0.5f), XMFLOAT3(0.0f, 0.0f, 0.0f) };
+		block.vertices[4] = VertexPositionColor{ XMFLOAT3(+0.5f, -0.5f, -0.5f), XMFLOAT3(0.0f, 0.0f, 0.0f) };
+		block.vertices[5] = VertexPositionColor{ XMFLOAT3(+0.5f, -0.5f, +0.5f), XMFLOAT3(0.0f, 0.0f, 0.0f) };
+		block.vertices[6] = VertexPositionColor{ XMFLOAT3(+0.5f, +0.5f, -0.5f), XMFLOAT3(0.0f, 0.0f, 0.0f) };
+		block.vertices[7] = VertexPositionColor{ XMFLOAT3(+0.5f, +0.5f, +0.5f), XMFLOAT3(0.0f, 0.0f, 0.0f) };
+	}
+	else
+	{
+		block.vertices[0] = VertexPositionColor{ XMFLOAT3(-0.5f, -0.5f, -0.5f), XMFLOAT3(blockType == BlockType::Bad ? 1.0f : 0.0f, blockType == BlockType::Good ? 1.0f : 0.0f, 0.0f) };
+		block.vertices[1] = VertexPositionColor{ XMFLOAT3(-0.5f, -0.5f, +0.5f), XMFLOAT3(blockType == BlockType::Bad ? 1.0f : 0.0f, blockType == BlockType::Good ? 1.0f : 0.0f, 1.0f) };
+		block.vertices[2] = VertexPositionColor{ XMFLOAT3(-0.5f, +0.5f, -0.5f), XMFLOAT3(blockType == BlockType::Bad ? 1.0f : 0.0f, 1.0f, 0.0f) };
+		block.vertices[3] = VertexPositionColor{ XMFLOAT3(-0.5f, +0.5f, +0.5f), XMFLOAT3(blockType == BlockType::Bad ? 1.0f : 0.0f, 1.0f, 1.0f) };
+		block.vertices[4] = VertexPositionColor{ XMFLOAT3(+0.5f, -0.5f, -0.5f), XMFLOAT3(1.0f, blockType == BlockType::Good ? 1.0f : 0.0f, 0.0f) };
+		block.vertices[5] = VertexPositionColor{ XMFLOAT3(+0.5f, -0.5f, +0.5f), XMFLOAT3(1.0f, blockType == BlockType::Good ? 1.0f : 0.0f, 1.0f) };
+		block.vertices[6] = VertexPositionColor{ XMFLOAT3(+0.5f, +0.5f, -0.5f), XMFLOAT3(1.0f, 1.0f, 0.0f) };
+		block.vertices[7] = VertexPositionColor{ XMFLOAT3(+0.5f, +0.5f, +0.5f), XMFLOAT3(1.0f, 1.0f, 1.0f) };
+	}
 
 	this->blocks->push_back(block);
 }

@@ -4,6 +4,13 @@ using namespace DirectX;
 
 namespace BlockBurst
 {
+	enum BlockType
+	{
+		Good,
+		Bad,
+		Dead
+	};
+
 	struct Block
 	{
 		XMFLOAT3 position;
@@ -14,5 +21,7 @@ namespace BlockBurst
 		VertexPositionColor vertices[8];
 
 		int indexOffset;
+
+		BlockType blockType;
 	};
 }
