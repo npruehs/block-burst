@@ -116,6 +116,37 @@ bool BlockBurstMain::Render()
 
 void BlockBurstMain::OnTap(float screenPositionX, float screenPositionY)
 {
+	if (this->blocks->empty())
+	{
+		return;
+	}
+
+	auto closestBlockIt = this->blocks->begin();
+
+	// Find closest block.
+	for (auto it = this->blocks->begin(); it != this->blocks->end(); ++it)
+	{
+		if ((*it).posZ < (*closestBlockIt).posZ)
+		{
+			closestBlockIt = it;
+		}
+	}
+
+	// Get spawn position for new block.
+	Block& closestBlock = *closestBlockIt;
+	auto x = closestBlock.posX;
+	auto y = closestBlock.posY;
+	auto z = closestBlock.posZ;
+
+	// Remove closest block.
+	this->blocks->erase(closestBlockIt);
+	
+	// Add two new blocks.
+	this->CreateBlock(x - 1, y, z);
+	this->CreateBlock(x + 1, y, z);
+
+	// Rebuild vertex and index buffers.
+	this->m_sceneRenderer->BuildGPUBuffers(this->blocks);
 }
 
 // Notifies renderers that device resources need to be released.
