@@ -51,6 +51,6 @@ namespace BlockBurst
 		int score;
 
 		// Creates a new block at the specified position and adds it to the scene to be rendered.
-		void CreateBlock(XMFLOAT3 position, BlockType blockType);
+		void CreateBlock(XMFLOAT3 position, float size, BlockType blockType);
 	};
 }

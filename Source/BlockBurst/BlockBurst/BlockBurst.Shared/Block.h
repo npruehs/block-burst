@@ -23,5 +23,7 @@ namespace BlockBurst
 		int indexOffset;
 
 		BlockType blockType;
+
+		float size;
 	};
 }
