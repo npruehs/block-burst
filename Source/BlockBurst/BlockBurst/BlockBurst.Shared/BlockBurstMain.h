@@ -19,6 +19,8 @@ namespace BlockBurst
 		void Update();
 		bool Render();
 
+		void OnTap(float screenPositionX, float screenPositionY);
+
 		// IDeviceNotify
 		virtual void OnDeviceLost();
 		virtual void OnDeviceRestored();

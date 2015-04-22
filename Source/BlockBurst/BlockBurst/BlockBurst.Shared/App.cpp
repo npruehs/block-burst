@@ -85,6 +85,9 @@ void App::SetWindow(CoreWindow^ window)
 	pointerVisualizationSettings->IsBarrelButtonFeedbackEnabled = false;
 #endif
 
+	window->PointerPressed +=
+		ref new TypedEventHandler<CoreWindow^, PointerEventArgs^>(this, &App::OnPointerPressed);
+
 	m_deviceResources->SetWindow(window);
 }
 
@@ -187,6 +190,12 @@ void App::OnWindowSizeChanged(CoreWindow^ sender, WindowSizeChangedEventArgs^ ar
 void App::OnDisplayContentsInvalidated(DisplayInformation^ sender, Object^ args)
 {
 	m_deviceResources->ValidateDevice();
+}
+
+void App::OnPointerPressed(_In_ CoreWindow^ sender, _In_ PointerEventArgs^ args)
+{
+	// Get the current pointer position.
+	this->m_main->OnTap(args->CurrentPoint->Position.X, args->CurrentPoint->Position.Y);
 }
 
 

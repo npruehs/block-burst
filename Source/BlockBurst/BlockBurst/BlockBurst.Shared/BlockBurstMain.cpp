@@ -114,6 +114,10 @@ bool BlockBurstMain::Render()
 	return true;
 }
 
+void BlockBurstMain::OnTap(float screenPositionX, float screenPositionY)
+{
+}
+
 // Notifies renderers that device resources need to be released.
 void BlockBurstMain::OnDeviceLost()
 {
