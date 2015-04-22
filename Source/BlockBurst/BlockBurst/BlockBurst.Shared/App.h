@@ -42,6 +42,9 @@ protected:
 		// Input event handlers.
 		void OnPointerPressed(_In_ Windows::UI::Core::CoreWindow^ sender, _In_ Windows::UI::Core::PointerEventArgs^ args);
 
+		void OnShareDataRequested(Windows::ApplicationModel::DataTransfer::DataTransferManager^ sender,
+			Windows::ApplicationModel::DataTransfer::DataRequestedEventArgs^ e);
+
 	private:
 		std::shared_ptr<DX::DeviceResources> m_deviceResources;
 		std::unique_ptr<BlockBurstMain> m_main;

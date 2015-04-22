@@ -249,3 +249,8 @@ void BlockBurstMain::CreateBlock(XMFLOAT3 position, float size, BlockType blockT
 
 	this->blocks->push_back(block);
 }
+
+int BlockBurstMain::GetScore()
+{
+	return this->score;
+}

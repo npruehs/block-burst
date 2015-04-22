@@ -8,6 +8,7 @@ using namespace BlockBurst;
 using namespace concurrency;
 using namespace Windows::ApplicationModel;
 using namespace Windows::ApplicationModel::Core;
+using namespace Windows::ApplicationModel::DataTransfer;
 using namespace Windows::ApplicationModel::Activation;
 using namespace Windows::UI::Core;
 using namespace Windows::UI::Input;
@@ -87,6 +88,10 @@ void App::SetWindow(CoreWindow^ window)
 
 	window->PointerPressed +=
 		ref new TypedEventHandler<CoreWindow^, PointerEventArgs^>(this, &App::OnPointerPressed);
+
+	DataTransferManager^ dataTransferManager = DataTransferManager::GetForCurrentView();
+	auto dataRequestedToken = dataTransferManager->DataRequested += ref new TypedEventHandler<DataTransferManager^,
+		DataRequestedEventArgs^>(this, &App::OnShareDataRequested);
 
 	m_deviceResources->SetWindow(window);
 }
@@ -198,6 +203,16 @@ void App::OnPointerPressed(_In_ CoreWindow^ sender, _In_ PointerEventArgs^ args)
 	this->m_main->OnTap(args->CurrentPoint->Position.X, args->CurrentPoint->Position.Y);
 }
 
+void App::OnShareDataRequested(DataTransferManager^ sender, DataRequestedEventArgs^ e)
+{
+	auto score = this->m_main->GetScore();
+	auto scoreString = L"My new score at BlockBurst: " + std::to_wstring(score) + L"! can you beat me??";
+
+	DataRequest^ request = e->Request;
+	request->Data->Properties->Title = "BlockBurst";
+	request->Data->Properties->Description = "Current score";
+	request->Data->SetText(ref new Platform::String(scoreString.c_str()));
+}
 
 #if !(WINAPI_FAMILY == WINAPI_FAMILY_PHONE_APP)
 void App::OnDpiChanged(DisplayInformation^ sender, Object^ args)
