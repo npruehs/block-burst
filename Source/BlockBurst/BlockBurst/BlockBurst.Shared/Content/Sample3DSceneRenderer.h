@@ -18,10 +18,6 @@ namespace BlockBurst
 		void ReleaseDeviceDependentResources();
 		void Update(DX::StepTimer const& timer);
 		void Render();
-		void StartTracking();
-		void TrackingUpdate(float positionX);
-		void StopTracking();
-		bool IsTracking() { return m_tracking; }
 
 		bool IsInitialized();
 
@@ -50,7 +46,6 @@ namespace BlockBurst
 		// Variables used with the rendering loop.
 		bool	m_loadingComplete;
 		float	m_degreesPerSecond;
-		bool	m_tracking;
 
 		// Vertices of this scene to be rendered.
 		std::vector<VertexPositionColor> vertices;
