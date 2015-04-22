@@ -21,7 +21,7 @@ BlockBurstMain::BlockBurstMain(const std::shared_ptr<DX::DeviceResources>& devic
 	// TODO: Replace this with your app's content initialization.
 	m_sceneRenderer = std::unique_ptr<Sample3DSceneRenderer>(new Sample3DSceneRenderer(m_deviceResources));
 
-	m_fpsTextRenderer = std::unique_ptr<SampleFpsTextRenderer>(new SampleFpsTextRenderer(m_deviceResources));
+	this->scoreTextRenderer = std::unique_ptr<ScoreTextRenderer>(new ScoreTextRenderer(m_deviceResources));
 
 	// TODO: Change the timer settings if you want something other than the default variable timestep mode.
 	// e.g. for 60 FPS fixed timestep update logic, call:
@@ -130,7 +130,7 @@ void BlockBurstMain::Update()
 
 		// TODO: Replace this with your app's content update functions.
 		m_sceneRenderer->Update(m_timer);
-		m_fpsTextRenderer->Update(m_timer);
+		this->scoreTextRenderer->Update(this->score);
 	});
 }
 
@@ -161,7 +161,7 @@ bool BlockBurstMain::Render()
 	// Render the scene objects.
 	// TODO: Replace this with your app's content rendering functions.
 	m_sceneRenderer->Render();
-	m_fpsTextRenderer->Render();
+	this->scoreTextRenderer->Render();
 
 	return true;
 }
@@ -204,14 +204,14 @@ void BlockBurstMain::OnTap(float screenPositionX, float screenPositionY)
 void BlockBurstMain::OnDeviceLost()
 {
 	m_sceneRenderer->ReleaseDeviceDependentResources();
-	m_fpsTextRenderer->ReleaseDeviceDependentResources();
+	this->scoreTextRenderer->ReleaseDeviceDependentResources();
 }
 
 // Notifies renderers that device resources may now be recreated.
 void BlockBurstMain::OnDeviceRestored()
 {
 	m_sceneRenderer->CreateDeviceDependentResources();
-	m_fpsTextRenderer->CreateDeviceDependentResources();
+	this->scoreTextRenderer->CreateDeviceDependentResources();
 	CreateWindowSizeDependentResources();
 }
 

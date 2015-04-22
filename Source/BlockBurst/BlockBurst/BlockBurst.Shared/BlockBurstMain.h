@@ -3,7 +3,7 @@
 #include "Common\StepTimer.h"
 #include "Common\DeviceResources.h"
 #include "Content\Sample3DSceneRenderer.h"
-#include "Content\SampleFpsTextRenderer.h"
+#include "Content\ScoreTextRenderer.h"
 
 #include "Block.h"
 
@@ -31,7 +31,7 @@ namespace BlockBurst
 
 		// TODO: Replace with your own content renderers.
 		std::unique_ptr<Sample3DSceneRenderer> m_sceneRenderer;
-		std::unique_ptr<SampleFpsTextRenderer> m_fpsTextRenderer;
+		std::unique_ptr<ScoreTextRenderer> scoreTextRenderer;
 
 		// Rendering loop timer.
 		DX::StepTimer m_timer;

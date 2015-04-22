@@ -1,12 +1,12 @@
 ﻿#include "pch.h"
-#include "SampleFpsTextRenderer.h"
+#include "ScoreTextRenderer.h"
 
 #include "Common/DirectXHelper.h"
 
 using namespace BlockBurst;
 
 // Initializes D2D resources used for text rendering.
-SampleFpsTextRenderer::SampleFpsTextRenderer(const std::shared_ptr<DX::DeviceResources>& deviceResources) : 
+ScoreTextRenderer::ScoreTextRenderer(const std::shared_ptr<DX::DeviceResources>& deviceResources) :
 	m_text(L""),
 	m_deviceResources(deviceResources)
 {
@@ -38,12 +38,10 @@ SampleFpsTextRenderer::SampleFpsTextRenderer(const std::shared_ptr<DX::DeviceRes
 }
 
 // Updates the text to be displayed.
-void SampleFpsTextRenderer::Update(DX::StepTimer const& timer)
+void ScoreTextRenderer::Update(int score)
 {
 	// Update display text.
-	uint32 fps = timer.GetFramesPerSecond();
-
-	m_text = (fps > 0) ? std::to_wstring(fps) + L" FPS" : L" - FPS";
+	m_text = L"Score: " + std::to_wstring(score);
 
 	DX::ThrowIfFailed(
 		m_deviceResources->GetDWriteFactory()->CreateTextLayout(
@@ -62,7 +60,7 @@ void SampleFpsTextRenderer::Update(DX::StepTimer const& timer)
 }
 
 // Renders a frame to the screen.
-void SampleFpsTextRenderer::Render()
+void ScoreTextRenderer::Render()
 {
 	ID2D1DeviceContext* context = m_deviceResources->GetD2DDeviceContext();
 	Windows::Foundation::Size logicalSize = m_deviceResources->GetLogicalSize();
@@ -99,13 +97,13 @@ void SampleFpsTextRenderer::Render()
 	context->RestoreDrawingState(m_stateBlock.Get());
 }
 
-void SampleFpsTextRenderer::CreateDeviceDependentResources()
+void ScoreTextRenderer::CreateDeviceDependentResources()
 {
 	DX::ThrowIfFailed(
 		m_deviceResources->GetD2DDeviceContext()->CreateSolidColorBrush(D2D1::ColorF(D2D1::ColorF::White), &m_whiteBrush)
 		);
 }
-void SampleFpsTextRenderer::ReleaseDeviceDependentResources()
+void ScoreTextRenderer::ReleaseDeviceDependentResources()
 {
 	m_whiteBrush.Reset();
 }
