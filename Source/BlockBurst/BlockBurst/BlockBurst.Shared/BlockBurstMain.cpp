@@ -12,7 +12,8 @@ using namespace Concurrency;
 // Loads and initializes application assets when the application is loaded.
 BlockBurstMain::BlockBurstMain(const std::shared_ptr<DX::DeviceResources>& deviceResources) :
 	m_deviceResources(deviceResources),
-	difficutly(1.0f)
+	difficulty(1.0f),
+	spawnTimeRemaining(1.0f)
 {
 	// Register to be notified if the Device is lost or recreated
 	m_deviceResources->RegisterDeviceNotify(this);
@@ -76,12 +77,26 @@ void BlockBurstMain::Update()
 		for (auto it = this->blocks->begin(); it != this->blocks->end(); ++it)
 		{
 			Block& block = *it;
+
+			// Rotate block.
 			block.rotation = radians;
 
+			// Translate block.
 			block.position = XMFLOAT3(
 				block.position.x + block.velocity.x * dt,
 				block.position.y + block.velocity.y * dt,
 				block.position.z + block.velocity.z * dt);
+		}
+
+		// Tick spawn timer.
+		this->spawnTimeRemaining -= dt;
+
+		if (this->spawnTimeRemaining <= 0)
+		{
+			int randomX = rand() % 10 - 5;
+			this->CreateBlock(XMFLOAT3(randomX, 0.0f, 0.0f));
+			this->m_sceneRenderer->BuildGPUBuffers(this->blocks);
+			this->spawnTimeRemaining = this->difficulty;
 		}
 
 		// TODO: Replace this with your app's content update functions.
@@ -174,7 +189,7 @@ void BlockBurstMain::CreateBlock(XMFLOAT3 position)
 {
 	auto block = Block();
 	block.position = position;
-	block.velocity = XMFLOAT3(0.0f, 0.0f, -this->difficutly);
+	block.velocity = XMFLOAT3(0.0f, 0.0f, -this->difficulty);
 
 	block.vertices[0] = VertexPositionColor{ XMFLOAT3(-0.5f, -0.5f, -0.5f), XMFLOAT3(0.0f, 0.0f, 0.0f) };
 	block.vertices[1] = VertexPositionColor{ XMFLOAT3(-0.5f, -0.5f, +0.5f), XMFLOAT3(0.0f, 0.0f, 1.0f) };
