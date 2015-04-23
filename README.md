@@ -1,4 +1,4 @@
-BlockBurst
+# BlockBurst
 
 BlockBurst is a Windows 10 game that has been developed live at A MAZE. / Berlin 2015.
 
